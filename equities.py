@@ -2,70 +2,171 @@ import pandas as pd
 import os
 import time
 from datetime import datetime
+from time import mktime
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib import style
+
+style.use('dark_background')
+import re
+from glob import glob
 
 path = '/Users/marcel/workspace/data/intraQuarter'
 
-def Key_Stats(gather="Total Debt/Equity (mrq)"):
-    statspath = path+'/_KeyStats'
+
+def Key_Stats(gather={"Total Debt/Equity",
+                      'Trailing P/E',
+                      'Price/Sales',
+                      'Price/Book',
+                      'Profit Margin',
+                      'Operating Margin',
+                      'Return on Assets',
+                      'Return on Equity',
+                      'Revenue Per Share',
+                      'Market Cap',
+                      'Enterprise Value',
+                      'Forward P/E',
+                      'PEG Ratio',
+                      'Enterprise Value/Revenue',
+                      'Enterprise Value/EBITDA',
+                      'Revenue',
+                      'Gross Profit',
+                      'EBITDA',
+                      'Net Income Avl to Common ',
+                      'Diluted EPS',
+                      'Earnings Growth',
+                      'Revenue Growth',
+                      'Total Cash',
+                      'Total Cash Per Share',
+                      'Total Debt',
+                      'Current Ratio',
+                      'Book Value Per Share',
+                      'Cash Flow',
+                      'Beta',
+                      'Held by Insiders',
+                      'Held by Institutions',
+                      'Shares Short (as of',
+                      'Short Ratio',
+                      'Short % of Float',
+                      'Shares Short (prior '}):
+    statspath = path + '/_KeyStats'
     stock_list = [x[0] for x in os.walk(statspath)]
-    df = pd.DataFrame(columns=['Date',
-                               'Unit',
-                               'Ticker',
-                               'DE Ratio',
-                               'Price',
-                               'stock_p_change',
-                               'SP500',
-                               'sp500_p_change'])
+    df = pd.DataFrame(columns = ['Date',
+                                 'Unix',
+                                 'Ticker',
+                                 'Price',
+                                 'stock_p_change',
+                                 'SP500',
+                                 'sp500_p_change',
+                                 'Difference',
+                                 'DE Ratio',
+                                 'Trailing P/E',
+                                 'Price/Sales',
+                                 'Price/Book',
+                                 'Profit Margin',
+                                 'Operating Margin',
+                                 'Return on Assets',
+                                 'Return on Equity',
+                                 'Revenue Per Share',
+                                 'Market Cap',
+                                 'Enterprise Value',
+                                 'Forward P/E',
+                                 'PEG Ratio',
+                                 'Enterprise Value/Revenue',
+                                 'Enterprise Value/EBITDA',
+                                 'Revenue',
+                                 'Gross Profit',
+                                 'EBITDA',
+                                 'Net Income Avl to Common ',
+                                 'Diluted EPS',
+                                 'Earnings Growth',
+                                 'Revenue Growth',
+                                 'Total Cash',
+                                 'Total Cash Per Share',
+                                 'Total Debt',
+                                 'Current Ratio',
+                                 'Book Value Per Share',
+                                 'Cash Flow',
+                                 'Beta',
+                                 'Held by Insiders',
+                                 'Held by Institutions',
+                                 'Shares Short (as of',
+                                 'Short Ratio',
+                                 'Short % of Float',
+                                 'Shares Short (prior ',
+                                 'Status'])
+
     sp500_df = pd.DataFrame.from_csv("YAHOO-INDEX_GSPC.csv")
 
     ticker_list = []
 
     for each_dir in stock_list[1:]:
-        each_file = os.listdir(each_dir)
-        ticker =each_dir.split("_KeyStats/")[1]
-        ticker_list.append(ticker)
+        each_file = glob(os.path.join(each_dir, '[0-9]*'))  # no hidden files
+        ticker = each_dir.split("_KeyStats/")[1]
 
         starting_stock = False
         starting_sp500 = False
 
         if len(each_file) > 0:
             for file in each_file:
-
-                date_stamp = datetime.strptime(file, '%Y%m%d%H%M%S.html')
+                try:
+                    date_stamp = datetime.strptime(os.path.basename(file), '%Y%m%d%H%M%S.html')
+                except:
+                    pass
                 unix_time = time.mktime(date_stamp.timetuple())
-                full_file_path = each_dir+'/'+file
-                source = open(full_file_path,'r').read()
+                source = open(file, 'r').read()
                 try:
                     # DE Ratio
-                    value = source.split(gather+':</td><td class="yfnc_tabledata1">')[1].split('</td>')[0]
+                    try:
+                        de_ratio = source.split(gather + ':</td><td class="yfnc_tabledata1">')[1].split('</td>')[0]
+                    except:
+                        try:
+                            de_ratio = source.split(gather + ':</td>\n<td class="yfnc_tabledata1">')[1].split('</td>')[
+                                0]
+                        except:
+                            try:
+                                de_ratio = \
+                                source.split(gather + ':</td>\r\n<td class="yfnc_tabledata1">')[1].split('</td>')[0]
+                            except:
+                                pass
+
+                    # S&P value on tick date
                     try:
                         sp500_date = datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d')
                         row = sp500_df[(sp500_df.index == sp500_date)]
                         sp500_value = float(row["Adjusted Close"])
                     except:
                         try:
-                            sp500_date = datetime.utcfromtimestamp(unix_time-259200).strftime('%Y-%m-%d')
+                            sp500_date = datetime.utcfromtimestamp(unix_time - 259200).strftime('%Y-%m-%d')
                             row = sp500_df[(sp500_df.index == sp500_date)]
                             sp500_value = row["Adjusted Close"]
                             sp500_value = float(sp500_value)
                         except:
-                            pass
+                            print "Warning no S&P data found for date %s" % sp500_date
+                            continue
                     # stock price
                     try:
-                        stock_price = source.split('</small><big><b>')[1].split('</b></big>')[0]
-                        stock_price = float(stock_price)
+                        s = source.split('</small><big><b>')[1].split('</b></big>')[0]
+                        stock_price = float(s)
                     except:
 
                         try:
-                            stock_price = source.split('<span id="yfs_l10_' + ticker + '">')[1].split('</span>')[0]
-                            stock_price = float(stock_price)
+                            s = source.split('<span id="yfs_l10_' + ticker + '">')[1].split('</span>')[0]
+                            stock_price = float(s)
                         except:
 
                             try:
-                                stock_price = source.split('<span id="yfs_l84_' + ticker + '">')[1].split('</span>')[0]
-                                stock_price = float(stock_price)
+                                s = source.split('<span id="yfs_l84_' + ticker + '">')[1].split('</span>')[0]
+                                stock_price = float(s)
                             except:
-                                pass
+                                try:
+                                    s = re.search('(\d{1,8}\.\d{1,8})', s)
+                                    stock_price = float(s.group(1))
+                                except Exception as e:
+                                    print 'Warning cannot find stock price for following:'
+                                    print str(e), stock_price, ticker, file
+                                    pass
+
 
                     # print("stock_price:", stock_price, "ticker:", ticker)
 
@@ -76,27 +177,62 @@ def Key_Stats(gather="Total Debt/Equity (mrq)"):
                         starting_sp500_value = sp500_value
                         starting_sp500 = True
 
-                    stock_p_change = (stock_price - starting_stock_value)/starting_stock_value*100.0
-                    sp500_p_change = (sp500_value - starting_sp500_value)/starting_sp500_value*100.0
+                    stock_p_change = (stock_price - starting_stock_value) / starting_stock_value * 100.0
+                    sp500_p_change = (sp500_value - starting_sp500_value) / starting_sp500_value * 100.0
+
+                    difference = stock_p_change - sp500_p_change
+                    try:
+                        if difference > 0.0:
+                            status = 'outperform'
+                        else:
+                            status = 'underperform'
+                    except:
+                        print 'Warning cannot set status for ticker %s' % ticker
+                        pass
 
                     df = df.append({'Date': date_stamp,
                                     'Unix': unix_time,
                                     'Ticker': ticker,
-                                    'DE Ratio': value,
+                                    'DE Ratio': de_ratio,
                                     'Price': stock_price,
                                     'stock_p_change': stock_p_change,
                                     'SP500': sp500_value,
-                                    'sp500_p_change': sp500_p_change
+                                    'sp500_p_change': sp500_p_change,
+                                    'Difference': difference,
+                                    'Status': status
                                     },
-
                                    ignore_index=True)
-                except IndexError:
-                    # print 'filename: %s' %full_file_path
-                    # print 'Warning cannot find %s for ticker %s.\n ' % (gather, ticker)
+                    ticker_list.append(ticker)
+
+                except Exception as e:
+                    print e
+                    print 'filename: %s' % file
+                    print 'Warning cannot find %s for ticker %s.\n ' % (gather, ticker)
                     pass
 
-    save = gather.replace(' ','').replace(')','').replace('(','').replace('/','') + '.csv'
+    for each_ticker in ticker_list:
+
+        try:
+            plot_df = df[(df['Ticker'] == each_ticker)]
+            if plot_df['Status'].values[-1] == 'underperform':
+                color = 'r'
+            else:
+                color = 'g'
+
+            plot_df = plot_df.set_index(['Date'])
+            plot_df['Difference'].plot(label=each_ticker, color=color)
+        except Exception as e:
+            print e
+            print 'Warning cannot set label for ticker %s' % each_ticker
+            pass
+
+    # plt.legend()
+    plt.show(block=False)
+
+    save = gather.replace(' ', '').replace(')', '').replace('(', '').replace('/', '') + '.csv'
     print save
     df.to_csv(save)
+    raw_input('Enter to close')
+
 
 Key_Stats()
