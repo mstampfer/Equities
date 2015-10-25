@@ -11,8 +11,7 @@ style.use('dark_background')
 import re
 from glob import glob
 
-path = '/Users/marcel/workspace/data/intraQuarter'
-
+path = '/Users/marcel/workspace/data/'
 
 def Key_Stats(gather={"Total Debt/Equity",
                       'Trailing P/E',
@@ -24,17 +23,16 @@ def Key_Stats(gather={"Total Debt/Equity",
                       'Return on Equity',
                       'Revenue Per Share',
                       'Market Cap',
-                      'Enterprise Value',
                       'Forward P/E',
                       'PEG Ratio',
-                      'Enterprise Value/Revenue',
-                      'Enterprise Value/EBITDA',
+                      'Enterprise Value',
+                      # 'Enterprise Value/Revenue',
+                      # 'Enterprise Value/EBITDA',
                       'Revenue',
                       'Gross Profit',
                       'EBITDA',
                       'Net Income Avl to Common ',
-                      'Diluted EPS',
-                      'Earnings Per Share',
+                      'Earnings Per Share|Diluted EPS',
                       'Earnings Growth',
                       'Revenue Growth',
                       'Total Cash',
@@ -42,63 +40,17 @@ def Key_Stats(gather={"Total Debt/Equity",
                       'Total Debt',
                       'Current Ratio',
                       'Book Value Per Share',
-                      'From Operations',
-                      'Operating Cash Flow',
+                      'From Operations|Operating Cash Flow',
                       'Beta',
                       'Held by Insiders',
                       'Held by Institutions',
                       'Shares Short',  # .as of|Shares Short .prior|Shares Short',
                       'Short Ratio',
                       'Short % of Float'}):
-    statspath = path + '/_KeyStats'
+    statspath = path + 'intraQuarter/_KeyStats'
     stock_list = [x[0] for x in os.walk(statspath)]
-    df = pd.DataFrame(columns = ['Date',
-                                 'Unix',
-                                 'Ticker',
-                                 'Price',
-                                 'stock_p_change',
-                                 'SP500',
-                                 'sp500_p_change',
-                                 'Difference',
-                                 'DE Ratio',
-                                 'Trailing P/E',
-                                 'Price/Sales',
-                                 'Price/Book',
-                                 'Profit Margin',
-                                 'Operating Margin',
-                                 'Return on Assets',
-                                 'Return on Equity',
-                                 'Revenue Per Share',
-                                 'Market Cap',
-                                 'Enterprise Value',
-                                 'Forward P/E',
-                                 'PEG Ratio',
-                                 'Enterprise Value/Revenue',
-                                 'Enterprise Value/EBITDA',
-                                 'Revenue',
-                                 'Gross Profit',
-                                 'EBITDA',
-                                 'Net Income Avl to Common ',
-                                 'Diluted EPS',
-                                 'Earnings Growth',
-                                 'Revenue Growth',
-                                 'Total Cash',
-                                 'Total Cash Per Share',
-                                 'Total Debt',
-                                 'Current Ratio',
-                                 'Book Value Per Share',
-                                 'From Operations',
-                                 'Operating Cash Flow',
-                                 'Beta',
-                                 'Held by Insiders',
-                                 'Held by Institutions',
-                                 'Shares Short',
-                                 'Short Ratio',
-                                 'Short % of Float',
-                                 'Status'])
-
-    sp500_df = pd.DataFrame.from_csv("YAHOO-INDEX_GSPC.csv")
-
+    output_df = pd.DataFrame()
+    sp500_df = pd.DataFrame.from_csv(path+"YAHOO-INDEX_GSPC.csv")
     ticker_list = []
 
     for each_dir in stock_list[1:]:
@@ -118,23 +70,10 @@ def Key_Stats(gather={"Total Debt/Equity",
                 source = open(file, 'r').read()
 
                 value_dict = {}
-                # # DE Ratio
-                # try:
-                #     de_ratio = source.split(gather + ':</td><td class="yfnc_tabledata1">')[1].split('</td>')[0]
-                # except:
-                #     try:
-                #         de_ratio = source.split(gather + ':</td>\n<td class="yfnc_tabledata1">')[1].split('</td>')[
-                #             0]
-                #     except:
-                #         try:
-                #             de_ratio = \
-                #             source.split(gather + ':</td>\r\n<td class="yfnc_tabledata1">')[1].split('</td>')[0]
-                #         except:
-                #             pass
 
                 for each_data in gather:
                     try:
-                        regex = each_data + r'.*?\n?\s*?.*?tabledata1">\n?\r?\s*?(-?\d{1,8}(\.\d{1,8})?M?B?K?|N/A)\%?\n?\r?\s*?</td>'
+                        regex = each_data + r'.*?\n?\s*?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?K?|N/A)\%?\n?\r?\s*?</td>'
                         value = re.search(regex, source)
                         value = (value.group(1))
 
@@ -149,7 +88,7 @@ def Key_Stats(gather={"Total Debt/Equity",
 
                     except Exception:
                         try:
-                            regex = each_data + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
+                            regex = each_data + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
                             value = re.search(regex, source)
                             value = (value.group(1))
                             value_dict[each_data] = value
@@ -224,7 +163,7 @@ def Key_Stats(gather={"Total Debt/Equity",
                     pass
 
 
-                df = df.append({'Date':date_stamp,
+                output_df = output_df.append({'Date':date_stamp,
                                  'Unix':unix_time,
                                  'Ticker':ticker,
                                  'Price':stock_price,
@@ -233,7 +172,6 @@ def Key_Stats(gather={"Total Debt/Equity",
                                  'sp500_p_change':sp500_p_change,
                                  'Difference':difference,
                                  'DE Ratio':value_dict['Total Debt/Equity'],
-                                 #'Market Cap':value_dict[1],
                                  'Trailing P/E':value_dict['Trailing P/E'],
                                  'Price/Sales':value_dict['Price/Sales'],
                                  'Price/Book':value_dict['Price/Book'],
@@ -243,16 +181,16 @@ def Key_Stats(gather={"Total Debt/Equity",
                                  'Return on Equity':value_dict['Return on Equity'],
                                  'Revenue Per Share':value_dict['Revenue Per Share'],
                                  'Market Cap':value_dict['Market Cap'],
-                                 'Enterprise Value':value_dict['Enterprise Value'],
                                  'Forward P/E':value_dict['Forward P/E'],
                                  'PEG Ratio':value_dict['PEG Ratio'],
-                                 'Enterprise Value/Revenue':value_dict['Enterprise Value/Revenue'],
-                                 'Enterprise Value/EBITDA':value_dict['Enterprise Value/EBITDA'],
+                                 'Enterprise Value':value_dict['Enterprise Value'],
+                                 # 'Enterprise Value/Revenue':value_dict['Enterprise Value/Revenue'],
+                                 # 'Enterprise Value/EBITDA':value_dict['Enterprise Value/EBITDA'],
                                  'Revenue':value_dict['Revenue'],
                                  'Gross Profit':value_dict['Gross Profit'],
                                  'EBITDA':value_dict['EBITDA'],
                                  'Net Income Avl to Common ':value_dict['Net Income Avl to Common '],
-                                 'Diluted EPS':value_dict['Diluted EPS'],
+                                 'Earnings Per Share':value_dict['Earnings Per Share|Diluted EPS'],
                                  'Earnings Growth':value_dict['Earnings Growth'],
                                  'Revenue Growth':value_dict['Revenue Growth'],
                                  'Total Cash':value_dict['Total Cash'],
@@ -260,8 +198,7 @@ def Key_Stats(gather={"Total Debt/Equity",
                                  'Total Debt':value_dict['Total Debt'],
                                  'Current Ratio':value_dict['Current Ratio'],
                                  'Book Value Per Share':value_dict['Book Value Per Share'],
-                                 'From Operations':value_dict['From Operations'],
-                                 'Operating Cash Flow': value_dict['Operating Cash Flow'],
+                                 'Operating Cash Flow': value_dict['From Operations|Operating Cash Flow'],
                                  'Beta':value_dict['Beta'],
                                  'Held by Insiders':value_dict['Held by Insiders'],
                                  'Held by Institutions':value_dict['Held by Institutions'],
@@ -275,7 +212,7 @@ def Key_Stats(gather={"Total Debt/Equity",
     # for each_ticker in ticker_list:
     #
     #     try:
-    #         plot_df = df[(df['Ticker'] == each_ticker)]
+    #         plot_df = output_df[(output_df['Ticker'] == each_ticker)]
     #         if plot_df['Status'].values[-1] == 'underperform':
     #             color = 'r'
     #         else:
@@ -290,7 +227,7 @@ def Key_Stats(gather={"Total Debt/Equity",
     # plt.legend()
     # plt.show(block=False)
 
-    df.to_csv("key_stats.csv")
+    output_df.to_csv(path + "output/key_stats.csv")
     raw_input('Enter to close')
 
 
