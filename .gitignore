@@ -1,3 +1,5 @@
 *.csv
 .idea
 .DS_Store
+*.txt
+*_
