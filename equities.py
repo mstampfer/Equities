@@ -73,24 +73,29 @@ def Key_Stats(gather={"Total Debt/Equity",
 
                 for each_data in gather:
                     try:
-                        regex = each_data + r'.*?\n?\s*?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?K?|N/A)\%?\n?\r?\s*?</td>'
+                        regex = '('+each_data+')' + r'.*?\n?\s*?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?K?|N/A)\%?\n?\r?\s*?</td>'
                         value = re.search(regex, source)
-                        value = (value.group(1))
+                        value = (value.group(2))
 
+                        if value == None:
+                            pass
                         if "B" in value:
-                            value = float(value.replace("B",''))*1000000000
+                            value = float(value.replace("B",''))*1000000000.
 
                         elif "M" in value:
-                            value = float(value.replace("M",''))*1000000
+                            value = float(value.replace("M",''))*1000000.
+
+                        elif "K" in value:
+                            value = float(value.replace("K",''))*1000.
 
                         value_dict[each_data] = value
 
 
                     except Exception:
                         try:
-                            regex = each_data + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
+                            regex = '('+each_data+')' + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
                             value = re.search(regex, source)
-                            value = (value.group(1))
+                            value = (value.group(2))
                             value_dict[each_data] = value
                         except:
                             if "Operat" not in each_data and "Earnings Per Share" not in each_data :
@@ -171,37 +176,37 @@ def Key_Stats(gather={"Total Debt/Equity",
                                  'SP500':sp500_value,
                                  'sp500_p_change':sp500_p_change,
                                  'Difference':difference,
-                                 'DE Ratio':value_dict['Total Debt/Equity'],
-                                 'Trailing P/E':value_dict['Trailing P/E'],
-                                 'Price/Sales':value_dict['Price/Sales'],
-                                 'Price/Book':value_dict['Price/Book'],
-                                 'Profit Margin':value_dict['Profit Margin'],
-                                 'Operating Margin':value_dict['Operating Margin'],
-                                 'Return on Assets':value_dict['Return on Assets'],
-                                 'Return on Equity':value_dict['Return on Equity'],
-                                 'Revenue Per Share':value_dict['Revenue Per Share'],
+                                 'DE Ratio':value_dict['Total Debt/Equity'].replace(",",""),
+                                 'Trailing P/E':value_dict['Trailing P/E'].replace(",",""),
+                                 'Price/Sales':value_dict['Price/Sales'].replace(",",""),
+                                 'Price/Book':value_dict['Price/Book'].replace(",",""),
+                                 'Profit Margin':value_dict['Profit Margin'].replace(",",""),
+                                 'Operating Margin':value_dict['Operating Margin'].replace(",",""),
+                                 'Return on Assets':value_dict['Return on Assets'].replace(",",""),
+                                 'Return on Equity':value_dict['Return on Equity'].replace(",",""),
+                                 'Revenue Per Share':value_dict['Revenue Per Share'].replace(",",""),
                                  'Market Cap':value_dict['Market Cap'],
-                                 'Forward P/E':value_dict['Forward P/E'],
-                                 'PEG Ratio':value_dict['PEG Ratio'],
+                                 'Forward P/E':value_dict['Forward P/E'].replace(",",""),
+                                 'PEG Ratio':value_dict['PEG Ratio'].replace(",",""),
                                  'Enterprise Value':value_dict['Enterprise Value'],
-                                 # 'Enterprise Value/Revenue':value_dict['Enterprise Value/Revenue'],
-                                 # 'Enterprise Value/EBITDA':value_dict['Enterprise Value/EBITDA'],
+                                 # 'Enterprise Value/Revenue':value_dict['Enterprise Value/Revenue'].replace(",",""),
+                                 # 'Enterprise Value/EBITDA':value_dict['Enterprise Value/EBITDA'].replace(",",""),
                                  'Revenue':value_dict['Revenue'],
                                  'Gross Profit':value_dict['Gross Profit'],
                                  'EBITDA':value_dict['EBITDA'],
                                  'Net Income Avl to Common ':value_dict['Net Income Avl to Common '],
-                                 'Earnings Per Share':value_dict['Earnings Per Share|Diluted EPS'],
-                                 'Earnings Growth':value_dict['Earnings Growth'],
-                                 'Revenue Growth':value_dict['Revenue Growth'],
+                                 'Earnings Per Share':value_dict['Earnings Per Share|Diluted EPS'].replace(",",""),
+                                 'Earnings Growth':value_dict['Earnings Growth'].replace(",",""),
+                                 'Revenue Growth':value_dict['Revenue Growth'].replace(",",""),
                                  'Total Cash':value_dict['Total Cash'],
-                                 'Total Cash Per Share':value_dict['Total Cash Per Share'],
+                                 'Total Cash Per Share':value_dict['Total Cash Per Share'].replace(",",""),
                                  'Total Debt':value_dict['Total Debt'],
-                                 'Current Ratio':value_dict['Current Ratio'],
-                                 'Book Value Per Share':value_dict['Book Value Per Share'],
+                                 'Current Ratio':value_dict['Current Ratio'].replace(",",""),
+                                 'Book Value Per Share':value_dict['Book Value Per Share'].replace(",",""),
                                  'Operating Cash Flow': value_dict['From Operations|Operating Cash Flow'],
-                                 'Beta':value_dict['Beta'],
-                                 'Held by Insiders':value_dict['Held by Insiders'],
-                                 'Held by Institutions':value_dict['Held by Institutions'],
+                                 'Beta':value_dict['Beta'].replace(",",""),
+                                 'Held by Insiders':value_dict['Held by Insiders'].replace(",",""),
+                                 'Held by Institutions':value_dict['Held by Institutions'].replace(",",""),
                                  'Shares Short':value_dict['Shares Short'],
                                  'Short Ratio':value_dict['Short Ratio'],
                                  'Short % of Float':value_dict['Short % of Float'],
