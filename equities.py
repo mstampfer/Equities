@@ -9,7 +9,7 @@ from matplotlib import style
 
 style.use('dark_background')
 import re
-from glob import glob
+from glob import globƒ
 
 path = '/Users/marcel/workspace/data/'
 

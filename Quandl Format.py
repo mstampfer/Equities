@@ -6,7 +6,7 @@ from glob import glob
 import re
 
 path = '/Users/marcel/workspace/data/'
-attributes = {'DE Ratio'                        :'Total Debt/Equity',
+attributes = {'DE Ratio': 'Total Debt/Equity',
            'Trailing P/E'                       :'Trailing P/E',
            'Price/Sales'                        :'Price/Sales',
            'Price/Book'                         :'Price/Book',
@@ -85,8 +85,9 @@ def Key_Stats():
                         value = re.search(regex, source)
                         value = (value.group(2))
 
-                        if value == None:
-                            pass
+                        if ',' in str(value):
+                            value = value.replace(',', '')
+
                         if "B" in value:
                             value = float(value.replace("B", '')) * 1000000000.
 
@@ -162,12 +163,10 @@ def Key_Stats():
                 else:
                     difference = 0.
 
-                if difference > 0:
+                if difference > 5:
                     status = "outperform"
-                elif difference < 0:
-                    status = "underperform"
                 else:
-                    status = 'N/A'
+                    status = "underperform"
 
                 output_dict['difference'] = difference
                 output_dict['stock_p_change'] = stock_p_change
@@ -185,12 +184,12 @@ def Key_Stats():
 
                 nas = sum([1 for (k,v) in output_dict.items() if v == 'N/A'])
 
-                if nas == 0:
+                # if nas == 0:
 
-                    output_df = output_df.append(output_dict, ignore_index=True)
+                output_df = output_df.append(output_dict, ignore_index=True)
 
 
-    output_df.to_csv("key_stats_acc_perf_NO_NA.csv")
+    output_df.to_csv("key_stats_acc_perf_WITH_NA_ENHANCED.csv")
 
 
 Key_Stats()
