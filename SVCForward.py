@@ -93,7 +93,7 @@ def Analysis2D():
 def Analysis():
 
     test_size = 1000
-    file = 'key_stats_acc_perf_NO_NA_ENHANCED.csv'
+    file = 'key_stats_acc_perf_WITH_NA_ENHANCED.csv'
     invest_amount = 100.
     total_invests = 0.
     if_market = 0.
@@ -138,7 +138,7 @@ def Analysis():
     print 'Average market return %f %%' %avg_market
 
 
-    data_df = pd.DataFrame.from_csv('forward_sample_NO_NA.csv')
+    data_df = pd.DataFrame.from_csv('forward_sample_WITH_NA.csv')
     data_df = data_df.replace('N/A',0).replace('NaN',0)
 
     invest_list = []

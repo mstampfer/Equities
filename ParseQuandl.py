@@ -85,21 +85,6 @@ def Key_Stats():
                         value = re.search(regex, source)
                         value = (value.group(2))
 
-                        if ',' in str(value):
-                            value = value.replace(',', '')
-
-                        if "B" in value:
-                            value = float(value.replace("B", '')) * 1000000000.
-
-                        elif "M" in value:
-                            value = float(value.replace("M", '')) * 1000000.
-
-                        elif "K" in value:
-                            value = float(value.replace("K", '')) * 1000.
-
-                        value_dict[each_data] = value
-
-
                     except Exception:
                         try:
                             regex = '(' + each_data + ')' + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
@@ -110,6 +95,20 @@ def Key_Stats():
                             print 'Warning cannot find %s for ticker %s in file %s. ' % (each_data, ticker, file)
                             value = "N/A"
                             value_dict[each_data] = value
+
+                    if ',' in str(value):
+                        value = value.replace(',', '')
+
+                    if "B" in value:
+                        value = float(value.replace("B", '')) * 1000000000.
+
+                    elif "M" in value:
+                        value = float(value.replace("M", '')) * 1000000.
+
+                    elif "K" in value:
+                        value = float(value.replace("K", '')) * 1000.
+
+                        value_dict[each_data] = value
 
                 one_year_later = int(unix_time + 31536000)
                 stock_price, sp500_value, stock_1y_value, sp500_1y_value = None, None, None, None
