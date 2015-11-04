@@ -4,12 +4,12 @@ import os
 import time
 from datetime import date, timedelta, datetime
 
-path = '/Users/marcel/workspace/data/'
+path = '/Users/marcel/workspace/Equities/data/'
 auth_token = open('auth_tok.txt', 'r').read()
 
 def Stock_Prices():
     df = pd.DataFrame()
-    statspath = path+'intraQuarter/_KeyStats'
+    statspath = path+'Yahoo/intraQuarter/_KeyStats'
     stock_list = [x[0] for x in os.walk(statspath)]
 
     for each_dir in stock_list[1:]:

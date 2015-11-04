@@ -5,7 +5,7 @@ from time import mktime
 from glob import glob
 import re
 
-path = '/Users/marcel/workspace/data/'
+path = '/Users/marcel/workspace/Equities/data/'
 attributes = {'DE Ratio': 'Total Debt/Equity',
            'Trailing P/E'                       :'Trailing P/E',
            'Price/Sales'                        :'Price/Sales',
@@ -52,11 +52,11 @@ def getValue(df, attribute, timestamp):
 def Key_Stats():
 
     gather = attributes.values()
-    statspath = path + 'intraQuarter/_KeyStats'
+    statspath = path + 'Yahoo/intraQuarter/_KeyStats'
     stock_list = [x[0] for x in os.walk(statspath)]
     output_df = pd.DataFrame()
-    sp500_df = pd.DataFrame.from_csv(path + "YAHOO-INDEX_GSPC.csv")
-    stock_df = pd.DataFrame.from_csv(path + "output/stock_prices.csv")
+    sp500_df = pd.DataFrame.from_csv(path + "Yahoo/YAHOO-INDEX_GSPC.csv")
+    stock_df = pd.DataFrame.from_csv(path + "Quandl/stock_prices.csv")
     ticker_list = []
 
     for each_dir in stock_list[1:]:
@@ -90,11 +90,11 @@ def Key_Stats():
                             regex = '(' + each_data + ')' + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
                             value = re.search(regex, source)
                             value = (value.group(2))
-                            value_dict[each_data] = value
                         except:
                             print 'Warning cannot find %s for ticker %s in file %s. ' % (each_data, ticker, file)
                             value = "N/A"
-                            value_dict[each_data] = value
+
+                    value_dict[each_data] = value
 
                     if ',' in str(value):
                         value = value.replace(',', '')
@@ -162,10 +162,10 @@ def Key_Stats():
                 else:
                     difference = 0.
 
-                if difference > 5:
-                    status = "outperform"
-                else:
-                    status = "underperform"
+                # if difference > 5:
+                #     status = "outperform"
+                # else:
+                #     status = "underperform"
 
                 output_dict['difference'] = difference
                 output_dict['stock_p_change'] = stock_p_change
@@ -177,18 +177,18 @@ def Key_Stats():
                 output_dict['ticker'] = ticker
                 output_dict['Unix'] = unix_time
                 output_dict['Date'] = date_stamp
-                output_dict['Status'] = status
+                # output_dict['Status'] = status
 
                 output_dict = dict({k: value_dict[v] for (k, v) in attributes.items()}, **output_dict)
 
-                nas = sum([1 for (k,v) in output_dict.items() if v == 'N/A'])
+                # nas = sum([1 for (k,v) in output_dict.items() if v == 'N/A'])
 
                 # if nas == 0:
 
                 output_df = output_df.append(output_dict, ignore_index=True)
 
 
-    output_df.to_csv("key_stats_acc_perf_WITH_NA_ENHANCED.csv")
+    output_df.to_csv("key_stats_acc_perf_WITH_NA.csv")
 
 
 Key_Stats()

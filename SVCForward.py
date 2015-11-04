@@ -4,8 +4,8 @@ from sklearn import svm, preprocessing
 import pandas as pd
 from matplotlib import style
 style.use('ggplot')
-
-
+import matplotlib.dates
+from datetime import datetime
 how_much_better = 5
 
 def status_calc(stock_p_change, sp500_p_change):
@@ -17,7 +17,7 @@ def status_calc(stock_p_change, sp500_p_change):
         return 0
 
 
-path = '/Users/marcel/workspace/data/'
+path = '/Users/marcel/workspace/Equities/data/'
 FEATURES =  [#'stock_price',
               'DE Ratio',
              'Trailing P/E',
@@ -53,7 +53,7 @@ FEATURES =  [#'stock_price',
              'Short % of Float']
 
 def Build_Data_Set(file, features):
-    data_df = pd.DataFrame.from_csv(file)
+    data_df = pd.DataFrame.from_csv(file, parse_dates=['Date'])
 
     data_df = data_df.reindex(np.random.permutation(data_df.index))
     data_df = data_df.replace('N/A',0).replace('NaN',0)
@@ -67,40 +67,21 @@ def Build_Data_Set(file, features):
         # .replace('outperform', 1)
     X = preprocessing.scale(X)
 
-    Z = np.array(data_df[['stock_p_change', 'sp500_p_change']])
-
-    return X, y, Z
-
-def Analysis2D():
-    X,y = Build_Data_Set(['DE Ratio', 'Trailing P/E'])
-
-    clf = svm.SVC(kernel='linear', C=1.0)
-    clf.fit(X, y)
-
-    w = clf.coef_[0]
-    a = -w[0] / w[1]
-    xx = np.linspace(min(X[:, 0]), max(X[:, 0]))
-    yy = a - xx*clf.intercept_[0] / w[1]
-
-    hp = plt.plot(xx, yy, 'k-', label='non weighted')
-    plt.scatter(X[:, 0], X[:, 1])
-
-    plt.show()
-    plt.xlabel('DE Ratio')
-    plt.ylabel('Trailing P/E')
+    alpha = np.array(data_df[['stock_p_change', 'sp500_p_change']])
+    return X, y, alpha, data_df
 
 
 def Analysis():
 
     test_size = 1000
-    file = 'key_stats_acc_perf_WITH_NA_ENHANCED.csv'
+    file = path + 'key_stats_acc_perf_WITH_NA.csv'
     invest_amount = 100.
     total_invests = 0.
     if_market = 0.
     if_strat = 0.
 
 
-    X, y, alpha = Build_Data_Set(file, FEATURES)
+    X, y, alpha, Z = Build_Data_Set(file, FEATURES)
     print len(X)
 
     clf = svm.SVC(kernel='rbf', tol=1e-5, C=1.0)
@@ -138,7 +119,7 @@ def Analysis():
     print 'Average market return %f %%' %avg_market
 
 
-    data_df = pd.DataFrame.from_csv('forward_sample_WITH_NA.csv')
+    data_df = pd.DataFrame.from_csv(path+'forward_sample_WITH_NA.csv')
     data_df = data_df.replace('N/A',0).replace('NaN',0)
 
     invest_list = []
@@ -156,5 +137,13 @@ def Analysis():
     print len(invest_list)
     print invest_list
 
+    ts_dict = {name: pd.Series(group['stock_price'].values, index=group['Date'].values) for (name, group) in Z.groupby('ticker')}
+
+    for e in invest_list:
+        if e in ts_dict.keys():
+            ts_dict[e].plot()
+            plt.xlabel('date')
+            plt.ylabel('stock price')
+    plt.show()
 
 Analysis()

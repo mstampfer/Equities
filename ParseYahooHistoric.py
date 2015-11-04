@@ -9,9 +9,9 @@ from matplotlib import style
 
 style.use('dark_background')
 import re
-from glob import globƒ
+from glob import glob
 
-path = '/Users/marcel/workspace/data/'
+path = '/Users/marcel/workspace/Equities/data/'
 
 def Key_Stats(gather={"Total Debt/Equity",
                       'Trailing P/E',
@@ -26,8 +26,6 @@ def Key_Stats(gather={"Total Debt/Equity",
                       'Forward P/E',
                       'PEG Ratio',
                       'Enterprise Value',
-                      # 'Enterprise Value/Revenue',
-                      # 'Enterprise Value/EBITDA',
                       'Revenue',
                       'Gross Profit',
                       'EBITDA',
@@ -47,10 +45,10 @@ def Key_Stats(gather={"Total Debt/Equity",
                       'Shares Short',  # .as of|Shares Short .prior|Shares Short',
                       'Short Ratio',
                       'Short % of Float'}):
-    statspath = path + 'intraQuarter/_KeyStats'
+    statspath = path + 'Yahoo/intraQuarter/_KeyStats'
     stock_list = [x[0] for x in os.walk(statspath)]
     output_df = pd.DataFrame()
-    sp500_df = pd.DataFrame.from_csv(path+"YAHOO-INDEX_GSPC.csv")
+    sp500_df = pd.DataFrame.from_csv(path+"Yahoo/YAHOO-INDEX_GSPC.csv")
     ticker_list = []
 
     for each_dir in stock_list[1:]:
@@ -77,20 +75,6 @@ def Key_Stats(gather={"Total Debt/Equity",
                         value = re.search(regex, source)
                         value = (value.group(2))
 
-                        if value == None:
-                            pass
-                        if "B" in value:
-                            value = float(value.replace("B",''))*1000000000.
-
-                        elif "M" in value:
-                            value = float(value.replace("M",''))*1000000.
-
-                        elif "K" in value:
-                            value = float(value.replace("K",''))*1000.
-
-                        value_dict[each_data] = value
-
-
                     except Exception:
                         try:
                             regex = '('+each_data+')' + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
@@ -102,6 +86,22 @@ def Key_Stats(gather={"Total Debt/Equity",
                                 print 'Warning cannot find %s for ticker %s. ' % (each_data, ticker)
                             value = "N/A"
                             value_dict[each_data] = value
+
+                    if ',' in str(value):
+                        value = value.replace(',', '')
+
+                    if value == None:
+                        pass
+                    if "B" in value:
+                        value = float(value.replace("B",''))*1000000000.
+
+                    elif "M" in value:
+                        value = float(value.replace("M",''))*1000000.
+
+                    elif "K" in value:
+                        value = float(value.replace("K",''))*1000.
+
+                    value_dict[each_data] = value
 
                 # pull S&P value on tick date
                 try:
@@ -189,8 +189,6 @@ def Key_Stats(gather={"Total Debt/Equity",
                                  'Forward P/E':value_dict['Forward P/E'].replace(",",""),
                                  'PEG Ratio':value_dict['PEG Ratio'].replace(",",""),
                                  'Enterprise Value':value_dict['Enterprise Value'],
-                                 # 'Enterprise Value/Revenue':value_dict['Enterprise Value/Revenue'].replace(",",""),
-                                 # 'Enterprise Value/EBITDA':value_dict['Enterprise Value/EBITDA'].replace(",",""),
                                  'Revenue':value_dict['Revenue'],
                                  'Gross Profit':value_dict['Gross Profit'],
                                  'EBITDA':value_dict['EBITDA'],
@@ -232,7 +230,7 @@ def Key_Stats(gather={"Total Debt/Equity",
     # plt.legend()
     # plt.show(block=False)
 
-    output_df.to_csv(path + "output/key_stats.csv")
+    output_df.to_csv(path + "key_stats.csv")
     raw_input('Enter to close')
 
 

@@ -6,8 +6,8 @@ from matplotlib import style
 style.use('ggplot')
 
 
-path = '/Users/marcel/workspace/data/'
-FEATURES =  ['stock_price',
+path = '/Users/marcel/workspace/Equities/data/'
+FEATURES =  [#'stock_price',
               'DE Ratio',
              'Trailing P/E',
              'Price/Sales',
@@ -45,7 +45,7 @@ def Build_Data_Set(file, features):
     data_df = pd.DataFrame.from_csv(file)
 
     data_df = data_df.reindex(np.random.permutation(data_df.index))
-    data_df = data_df.replace('N/A',0).replace('NaN',0)
+    data_df = data_df.replace('N/A',0).replace('NaN',0).replace(',','')
 
     X = data_df[features]
     y = data_df['Status']\
@@ -58,7 +58,9 @@ def Build_Data_Set(file, features):
     return X, y, Z
 
 def Analysis2D():
-    X,y = Build_Data_Set(['DE Ratio', 'Trailing P/E'])
+
+    file = path+'key_stats.csv'
+    X,y, _ = Build_Data_Set(file, ['DE Ratio', 'Trailing P/E'])
 
     clf = svm.SVC(kernel='linear', C=1.0)
     clf.fit(X, y)
@@ -68,7 +70,7 @@ def Analysis2D():
     xx = np.linspace(min(X[:, 0]), max(X[:, 0]))
     yy = a - xx*clf.intercept_[0] / w[1]
 
-    hp = plt.plot(xx, yy, 'k-', label='non weighted')
+    plt.plot(xx, yy, 'k-', label='non weighted')
     plt.scatter(X[:, 0], X[:, 1])
 
     plt.show()
@@ -79,7 +81,8 @@ def Analysis2D():
 def Analysis():
 
     test_size = 1000
-    file = 'key_stats_acc_perf_NO_NA.csv'
+    file = path+'key_stats.csv'
+#    file = path+'key_stats_acc_perf_NO_NA.csv'
     invest_amount = 100.
     total_invests = 0.
     if_market = 0.
@@ -123,5 +126,8 @@ def Analysis():
     print 'Average investment return %f %%' %avg_strat
     print 'Average market return %f %%' %avg_market
 
-
+    plt.scatter(Z[:, 0], Z[:, 1])
+    plt.xlabel('stock_p_change')
+    plt.ylabel('sp500_p_change')
+    plt.show()
 Analysis()

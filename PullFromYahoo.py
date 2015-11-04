@@ -2,10 +2,10 @@ import os
 import urllib2
 import time
 
-path = '/Users/marcel/workspace/data/'
+path = '/Users/marcel/workspace/Equities/data'
 
 def Check_Yahoo():
-    statspath = path + 'intraQuarter/_KeyStats/'
+    statspath = path + 'Yahoo/intraQuarter/_KeyStats/'
     stock_list = [x[0] for x in os.walk(statspath)]
 
     try:
@@ -17,7 +17,7 @@ def Check_Yahoo():
                 html = response.read()
                 print(e)
 
-                save = '%soutput/forward/%s.html' % (path, str(e))
+                save = '%sYahoo/forward/%s.html' % (path, str(e))
                 store = open(save, 'w')
                 store.write(str(html))
                 store.close()
