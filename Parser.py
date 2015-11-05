@@ -117,6 +117,9 @@ class Parser(object):
     def oneYearLater(self, unix_time):
         return int(unix_time + 31536000)
 
+    def oneYearAgo(self, unix_time):
+        return int(unix_time - 31536000)
+
     def getReturn(self, old, new):
         l = [old, new]
         if all(False if s=='N/A' or s==None else True for s in l):

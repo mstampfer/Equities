@@ -19,8 +19,8 @@ for fullpath in fullpaths:
     keyStats = {}
     regex = 'market_time.....,\s(...)\s(..),\s(....)'
     ticker = p.getTickerFromFullPath(fullpath, 'forward/data/', '.html')
-    forwardDate = p.getDateFromMarketTime(fullpath)
-    unixTime, date = p.getDateFromMarketTime(fullpath)
+    forwardDate, _ = p.getDateFromMarketTime(fullpath)
+    fwdUnixTime, date = p.getDateFromMarketTime(fullpath)
 
     # pull key stats from Yahoo screen
     for feature in p.features:
@@ -29,17 +29,17 @@ for fullpath in fullpaths:
         keyStats[feature] = value
 
     # Pull stock price and s&p adjusted close on date and forward date and clean missing values
-    price = p.getValueFromDf(p.stock_df, ticker.upper(), unixTime)
+    price = p.getValueFromDf(p.stock_df, ticker.upper(), p.oneYearAgo(fwdUnixTime))
     priceFwd = p.getValueFromDf(p.stock_df, ticker.upper(),forwardDate)
 
-    sp500 = p.getValueFromDf(p.sp500_df, 'Adjusted Close', unixTime)
+    sp500 = p.getValueFromDf(p.sp500_df, 'Adjusted Close', p.oneYearAgo(fwdUnixTime))
     sp500Fwd = p.getValueFromDf(p.sp500_df, 'Adjusted Close', forwardDate)
 
     # clean up
-    p.setDefaultIfNone(price, unixTime)
-    p.setDefaultIfNone(priceFwd, unixTime)
-    p.setDefaultIfNone(sp500, unixTime)
-    p.setDefaultIfNone(sp500Fwd, unixTime)
+    p.setDefaultIfNone(price, fwdUnixTime)
+    p.setDefaultIfNone(priceFwd, fwdUnixTime)
+    p.setDefaultIfNone(sp500, fwdUnixTime)
+    p.setDefaultIfNone(sp500Fwd, fwdUnixTime)
 
     # calculate returns and alphas
     stockReturn = p.getReturn(price, priceFwd)

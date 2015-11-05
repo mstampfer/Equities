@@ -61,10 +61,6 @@ def Build_Data_Set(file, features):
 
 
     X = np.array(data_df[features].values)
-    y = data_df['Status']
-        #     \
-        # .replace('underperform', 0)\
-        # .replace('outperform', 1)
     X = preprocessing.scale(X)
 
     alpha = np.array(data_df[['stock_p_change', 'sp500_p_change']])
@@ -80,9 +76,7 @@ def Analysis():
     if_market = 0.
     if_strat = 0.
 
-
     X, y, alpha, Z = Build_Data_Set(file, FEATURES)
-    print len(X)
 
     clf = svm.SVC(kernel='rbf', tol=1e-5, C=1.0)
     #clf = svm.SVC(kernel='linear', C=1.0)
@@ -112,7 +106,6 @@ def Analysis():
 
     avg_strat = (if_strat - do_nothing)/do_nothing * 100.
     avg_market = (if_market - do_nothing)/do_nothing * 100.
-
 
     print 'Compared to the market we earn %f more' %compared
     print 'Average investment return %f %%' %avg_strat
