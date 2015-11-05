@@ -136,16 +136,16 @@ def Forward():
                     break
 
             if stock_price is None:
-                print 'No stock price for ticker %s on date %d' % (ticker, unix_time)
+                print 'No stock price for ticker %s on date %s' % (ticker, datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S'))
                 stock_price = 'N/A'
             if stock_forward_value is None:
                 print 'No stock price for ticker %s on date %d' % (ticker, forward_date)
                 stock_forward_value = 'N/A'
             if sp500_value is None:
-                print 'No sp500 value on date %d' % unix_time
+                print 'No sp500 value on date %s' % datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S')
                 sp500_value = 'N/A'
             if sp500_forward_value is None:
-                print 'No sp500 value on date %d' % unix_time
+                print 'No sp500 value on date %s' % datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S')
                 sp500_forward_value = 'N/A'
 
             stock = [stock_price, stock_forward_value]

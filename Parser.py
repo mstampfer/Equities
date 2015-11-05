@@ -1,14 +1,12 @@
-import os
 from datetime import datetime
-from glob import glob
 from time import mktime
 import pandas as pd
-
+import time
 import re
 
 
-class Parser:
-    def __init__(self, dataPath):
+class Parser(object):
+    def __init__(self, path):
 
         self.featuresDict = {'DE Ratio': 'Total Debt/Equity',
                'Trailing P/E'                       :'Trailing P/E',
@@ -43,32 +41,22 @@ class Parser:
                'Short Ratio'                        :'Short Ratio',
                'Short % of Float'                   :'Short % of Float'
               }
+        self.path = path
         self.features = self.featuresDict.values()
-
-        self.path = dataPath
-        self.statspath = self.path + 'Yahoo/intraQuarter/_KeyStats'
-        self.tickerDirs = (x[0] for x in os.walk(self.statspath))
-        self.filesInTickerDirs = (glob(os.path.join(d, '[0-9]*')) for d in self.tickerDirs)  # no hidden files
-        self.files = (file for files in self.filesInTickerDirs for file in files)
-        self.tickers = (dir.split("_KeyStats/")[1] for dir in self.tickerDirs)
         self.unix_day = 60 * 60 * 24
         self.rolling = [0, -1, -2, -3, 1, 2, 3, -4, -5, 4, 5]  # roll back then forward (then back again)
         self.date_roll = lambda timestamp: (int(timestamp + roll_by * self.unix_day) for roll_by in self.rolling)
-
         self.sp500_df = pd.DataFrame.from_csv(self.path + "Yahoo/YAHOO-INDEX_GSPC.csv")
         self.stock_df = pd.DataFrame.from_csv(self.path + "Quandl/stock_prices.csv")
-
-
-
 
     def getDateStampAndUnixTime(self, filename):
         dateStamp = datetime.strptime(filename, '%Y%m%d%H%M%S.html')
         unixTime = mktime(dateStamp.timetuple())
         return dateStamp, unixTime
 
-    def getTickerFromFile(self, file):
-        regex = '_KeyStats/' + '(.*)' + '/.*'
-        value = re.search(regex, file)
+    def getTickerFromFullPath(self, fullpath, preceed, proceed):
+        regex = preceed + '(.*)' + proceed
+        value = re.search(regex, fullpath)
         ticker = value.group(1)
         return ticker
 
@@ -85,7 +73,7 @@ class Parser:
                 value = re.search(regex, source)
                 value = (value.group(2))
             except:
-                print 'Warning cannot find %s for ticker %s in file %s. ' % (feature, self.getTickerFromFile(file), file)
+                print 'Warning cannot find %s for ticker %s in file %s. ' % (feature, self.getTickerFromFullPath(file), file)
                 value = "N/A"
         return value
 
@@ -108,7 +96,7 @@ class Parser:
 
     def setDefaultIfNone(self, value, unix_time):
         if value is None:
-            print 'No sp500 value on date %d' % unix_time
+            print 'No sp500 value on %s' % datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S')
             value = 'N/A'
 
     def cleanup(self, value):
@@ -131,51 +119,21 @@ class Parser:
 
     def getReturn(self, old, new):
         l = [old, new]
-        if all(False if s=='N/A' else True for s in l):
+        if all(False if s=='N/A' or s==None else True for s in l):
             return round((((new - old) / old) * 100), 2)
         else:
             return None
 
-p = Parser('/Users/marcel/workspace/Equities/data/')
-output = {}
-values = {}
-for file in p.files:
-    ticker = p.getTickerFromFile(file)
-    for feature in p.features:
-        value = p.searchSourceForFeature(file, feature)
-        value = p.cleanup(value)
-        values[feature] = value
-
-    dateStamp, unixTime = p.getDateStampAndUnixTime(file)
-    price = p.getValueFromDf(p.stock_df, ticker.upper(), unixTime)
-    priceIn1y = p.getValueFromDf(p.stock_df, ticker.upper(), p.oneYearLater(unixTime))
-    sp500 = p.getValueFromDf(p.sp500_df, 'Adj_Close', unixTime)
-    sp500In1y = p.getValueFromDf(p.sp500_df, 'Adj_Close', p.oneYearLater(unixTime))
-    p.setDefaultIfNone(price, unixTime)
-    p.setDefaultIfNone(priceIn1y, unixTime)
-    p.setDefaultIfNone(sp500, unixTime)
-    p.setDefaultIfNone(sp500In1y, unixTime)
-    stockReturn = p.getReturn(price, priceIn1y)
-    sp500Return = p.getReturn(sp500, sp500In1y)
-    if all([stockReturn, sp500Return]):
-        difference = stockReturn - sp500Return
-    else:
-        difference = 0.0
-
-
-    output['difference'] = difference
-    output['stock_p_change'] = stockReturn
-    output['sp500_p_change'] = sp500Return
-    output['stock_price'] = price
-    output['stock_1y_value'] = priceIn1y
-    output['sp500_value'] = sp500
-    output['sp500_1y_value'] = sp500In1y
-    output['ticker'] = ticker
-    output['Unix'] = unixTime
-    output['Date'] = dateStamp
-
-    output = dict({k: values[v] for (k, v) in p.featuresDict.items()}, **output)
-
+    def getDateFromMarketTime(self, fullpath):
+        regex = 'market_time.....,\s(...)\s(..),\s(....)'
+        source = open(fullpath, "r").read()
+        value = re.search(regex, source)
+        month = (value.group(1))
+        day = (value.group(2))
+        year = (value.group(3))
+        date = datetime.strptime('%s-%s-%s' %(day,month,year), '%d-%b-%Y')
+        unix_time = int(time.mktime(date.timetuple()))
+        return unix_time, date
 
 
 
