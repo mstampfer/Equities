@@ -9,9 +9,9 @@ keyStatsPath = dataPath + 'Yahoo/intraQuarter/_KeyStats/*'
 fileGlob = '[0-9]*'
 
 p = Parser(dataPath)
-tickerDirs = [e for e in glob(keyStatsPath)]
-filesInTickerDirs = [glob(os.path.join(d, fileGlob)) for d in tickerDirs]  # no hidden files
-fullpaths = [file for files in filesInTickerDirs for file in files]
+tickerDirs = (e for e in glob(keyStatsPath))
+filesInTickerDirs = (glob(os.path.join(d, fileGlob)) for d in tickerDirs)  # no hidden files
+fullpaths = (file for files in filesInTickerDirs for file in files)
 output_df = pd.DataFrame()
 
 for fullpath in fullpaths:

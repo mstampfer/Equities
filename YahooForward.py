@@ -10,7 +10,7 @@ keyStatsPath = dataPath + 'Yahoo/forward/data/*'
 fileGlob = '*html'
 
 p = Parser(dataPath)
-fullpaths = [e for e in glob(keyStatsPath)]
+fullpaths = (e for e in glob(keyStatsPath))
 
 output_df = pd.DataFrame()
 

@@ -1,12 +1,16 @@
+from matplotlib import use
+use('TkAgg')
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import svm, preprocessing
+from sklearn import preprocessing
+# from sklearn.feature_selection.univariate_selection import GenericUnivariateSelect
 import pandas as pd
 from matplotlib import style
 style.use('ggplot')
-import matplotlib.dates
-from datetime import datetime
-how_much_better = 5
+from Selection import Selection
+import PlotLearningCurve
+from GridSearchParams import GridSearchParams, RandomParamSearch
+
+# how_much_better = 5
 
 def status_calc(stock_p_change, sp500_p_change):
 
@@ -62,6 +66,8 @@ def Build_Data_Set(file, features):
 
     X = np.array(data_df[features].values)
     X = preprocessing.scale(X)
+    # X = GenericUnivariateSelect()
+    y = data_df['Status']
 
     alpha = np.array(data_df[['stock_p_change', 'sp500_p_change']])
     return X, y, alpha, data_df
@@ -69,74 +75,55 @@ def Build_Data_Set(file, features):
 
 def Analysis():
 
-    test_size = 1000
-    file = path + 'key_stats_acc_perf_WITH_NA.csv'
-    invest_amount = 100.
-    total_invests = 0.
-    if_market = 0.
-    if_strat = 0.
+    cv_size = 1000
+    file = path + 'key_stats_acc_perf_NO_NA.csv'
 
     X, y, alpha, Z = Build_Data_Set(file, FEATURES)
 
-    clf = svm.SVC(kernel='rbf', tol=1e-5, C=1.0)
-    #clf = svm.SVC(kernel='linear', C=1.0)
+    # Best C selection
+    # sel = Selection(X, y, FEATURES, cv_size)
+    # bestC = sel.selectC(X, y)
 
-    clf.fit(X[:-test_size], y[:-test_size])  # training size
+    # PlotLearningCurve.learningCurve(X,y)
 
-    correct_count = 0
-    for x in range(test_size + 1):
-        if clf.predict(X[-x])[0] == y.values[-x]:
-            correct_count += 1
+    # GridSearchParams(X, y)
 
-    for x in range(test_size + 1):
-        if clf.predict(X[-x])[0] == 1:
-            invest_return = invest_amount + invest_amount * alpha[-x][0] / 100.
-            market_return = invest_amount + invest_amount * alpha[-x][1] / 100.
-            total_invests += 1
-            if_market += market_return
-            if_strat += invest_return
-
-    print 'Accuracy : %' + str(float(correct_count)/test_size * 100.0)
-    print 'Total Trades: %d' % total_invests
-    print 'Ending with Strategy %f' % if_strat
-    print 'Ending with Market %f' % if_market
-
-    compared = (if_strat - if_market)/if_market * 100.
-    do_nothing = total_invests * invest_amount
-
-    avg_strat = (if_strat - do_nothing)/do_nothing * 100.
-    avg_market = (if_market - do_nothing)/do_nothing * 100.
-
-    print 'Compared to the market we earn %f more' %compared
-    print 'Average investment return %f %%' %avg_strat
-    print 'Average market return %f %%' %avg_market
+    RandomParamSearch(X, y)
+    # for x in range(cv_size + 1):
+    #     if clf.predict(X[-x])[0] == 1:
+    #         invest_return = invest_amount + invest_amount * alpha[-x][0] / 100.
+    #         market_return = invest_amount + invest_amount * alpha[-x][1] / 100.
+    #         total_invests += 1
+    #         if_market += market_return
+    #         if_strat += invest_return
 
 
-    data_df = pd.DataFrame.from_csv(path+'forward_sample_WITH_NA.csv')
-    data_df = data_df.replace('N/A',0).replace('NaN',0)
-
-    invest_list = []
-
-    X = np.array(data_df[FEATURES].values)
-    X = preprocessing.scale(X)
-    tickers = data_df['ticker'].values.tolist()
-
-    for i in range(len(X)):
-        p = clf.predict(X[i])[0]
-        if p == 1:
-            print tickers[i]
-            invest_list.append(tickers[i])
-
-    print len(invest_list)
-    print invest_list
-
-    ts_dict = {name: pd.Series(group['stock_price'].values, index=group['Date'].values) for (name, group) in Z.groupby('ticker')}
-
-    for e in invest_list:
-        if e in ts_dict.keys():
-            ts_dict[e].plot()
-            plt.xlabel('date')
-            plt.ylabel('stock price')
-    plt.show()
+    #
+    # data_df = pd.DataFrame.from_csv(path+'forward_sample_WITH_NA.csv')
+    # data_df = data_df.replace('N/A',0).replace('NaN',0)
+    #
+    # invest_list = []
+    #
+    # X = np.array(data_df[FEATURES].values)
+    # X = preprocessing.scale(X)
+    # tickers = data_df['ticker'].values.tolist()
+    #
+    # for i in range(len(X)):
+    #     p = clf.predict(X[i])[0]
+    #     if p == 1:
+    #         print tickers[i]
+    #         invest_list.append(tickers[i])
+    #
+    # print len(invest_list)
+    # print invest_list
+    #
+    # ts_dict = {name: pd.Series(group['stock_price'].values, index=group['Date'].values) for (name, group) in Z.groupby('ticker')}
+    #
+    # for e in invest_list:
+    #     if e in ts_dict.keys():
+    #         ts_dict[e].plot()
+    #         plt.xlabel('date')
+    #         plt.ylabel('stock price')
+    # plt.show()
 
 Analysis()
