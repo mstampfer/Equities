@@ -9,6 +9,10 @@ style.use('ggplot')
 from Selection import Selection
 import PlotLearningCurve
 from GridSearchParams import GridSearchParams, RandomParamSearch
+from sklearn import cross_validation
+
+
+from sklearn import svm
 
 # how_much_better = 5
 
@@ -66,11 +70,13 @@ def Build_Data_Set(file, features):
 
     X = np.array(data_df[features].values)
     X = preprocessing.scale(X)
-    # X = GenericUnivariateSelect()
     y = data_df['Status']
 
-    alpha = np.array(data_df[['stock_p_change', 'sp500_p_change']])
-    return X, y, alpha, data_df
+    # # test/train 60/40 spliy
+    # X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.4, random_state=0)
+
+
+    return X, y
 
 
 def Analysis():
@@ -78,7 +84,14 @@ def Analysis():
     cv_size = 1000
     file = path + 'key_stats_acc_perf_NO_NA.csv'
 
-    X, y, alpha, Z = Build_Data_Set(file, FEATURES)
+    X, y = Build_Data_Set(file, FEATURES)
+
+    clf = svm.SVC(kernel='rbf', C=1)
+
+    # scores = cross_validation.cross_val_score(clf, X, y, cv=3, n_jobs=2, verbose=True) # hangs
+    scores = cross_validation.cross_val_score(clf, X, y, cv=5, verbose=True, scoring='precision') # 0.71
+
+    print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
     # Best C selection
     # sel = Selection(X, y, FEATURES, cv_size)
