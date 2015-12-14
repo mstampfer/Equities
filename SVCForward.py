@@ -10,6 +10,7 @@ from Selection import Selection
 import PlotLearningCurve
 from GridSearchParams import GridSearchParams, RandomParamSearch
 from sklearn import cross_validation
+from sklearn.decomposition import PCA
 
 
 from sklearn import svm
@@ -85,6 +86,38 @@ def Analysis():
     file = path + 'key_stats_acc_perf_NO_NA.csv'
 
     X, y = Build_Data_Set(file, FEATURES)
+
+    pca = PCA(n_components=3)
+
+    pca.fit(X)
+
+    print X.shape
+    X_pca = pca.transform(X)
+    print X_pca.shape
+
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(X_pca[:,0], X_pca[:,1], X_pca[:,2], c=y)
+
+
+    from sklearn.cross_validation import cross_val_score
+    from sklearn.svm import LinearSVC
+
+    cross_val_score(LinearSVC(), X, y)
+    print cross_val_score(LinearSVC(), X, y, cv=5, scoring="f1_macro")
+
+    print cross_val_score(LinearSVC(), X, y % 2, scoring="roc_auc")
+
+    from sklearn.cross_validation import ShuffleSplit
+    shuffle_split = ShuffleSplit(len(X), 10, test_size=.4)
+    print cross_val_score(LinearSVC(), X, y, cv=shuffle_split)
+
+
+    # plt.(X_pca[:,0], X_pca[:,1], c=y)
+
+
 
     clf = svm.SVC(kernel='rbf', C=1)
 

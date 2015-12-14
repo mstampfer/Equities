@@ -51,50 +51,45 @@ def getValue(df, attribute, timestamp):
 
 def Key_Stats():
 
-    gather = attributes.values()
+    features = attributes.values()
     statspath = path + 'Yahoo/intraQuarter/_KeyStats'
-    stock_list = [x[0] for x in os.walk(statspath)]
+    keystats_screen_paths = [x[0] for x in os.walk(statspath)]
     output_df = pd.DataFrame()
     sp500_df = pd.DataFrame.from_csv(path + "Yahoo/YAHOO-INDEX_GSPC.csv")
     stock_df = pd.DataFrame.from_csv(path + "Quandl/stock_prices.csv")
     ticker_list = []
 
-    for each_dir in stock_list[1:]:
-        files = glob(os.path.join(each_dir, '[0-9]*'))  # no hidden files
+    for each_dir in keystats_screen_paths[1:]:
+        keystats_files = glob(os.path.join(each_dir, '[0-9]*'))  # no hidden files
         ticker = each_dir.split("_KeyStats/")[1]
         ticker_list.append(ticker)
         print ticker
 
-        if len(files) > 0:
-            for full_file_path in files:
-                file = os.path.basename(full_file_path)
-                date_stamp = datetime.strptime(file, '%Y%m%d%H%M%S.html')
+        if len(keystats_files) > 0:
+            for full_file_path in keystats_files:
+                filename = os.path.basename(full_file_path)
+                date_stamp = datetime.strptime(filename, '%Y%m%d%H%M%S.html')
                 unix_time = mktime(date_stamp.timetuple())
-                source = open(full_file_path, 'r').read()
-                try:
-                    date_stamp = datetime.strptime(os.path.basename(file), '%Y%m%d%H%M%S.html')
-                except:
-                    pass
-
+                html_source = open(full_file_path, 'r').read()
                 value_dict = {}
                 output_dict = {}
 
-                for each_data in gather:
+                for feature in features:
                     try:
-                        regex = '(' + each_data + ')' + r'.*?\n?\s*?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?K?|N/A)\%?\n?\r?\s*?</td>'
-                        value = re.search(regex, source)
+                        regex = '(' + feature + ')' + r'.*?\n?\s*?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?K?|N/A)\%?\n?\r?\s*?</td>'
+                        value = re.search(regex, html_source)
                         value = (value.group(2))
 
                     except Exception:
                         try:
-                            regex = '(' + each_data + ')' + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
-                            value = re.search(regex, source)
+                            regex = '(' + feature + ')' + r'.*?\n?\t*?\s*?.*?\n?.*?tabledata1">\n?\r?\s*?(-?(\d{1,3},)?\d{1,8}(\.\d{1,8})?M?B?|N/A)\%?\n?\r?\s*?</td>'
+                            value = re.search(regex, html_source)
                             value = (value.group(2))
                         except:
-                            print 'Warning cannot find %s for ticker %s in file %s. ' % (each_data, ticker, file)
+                            print 'Warning cannot find %s for ticker %s in file %s. ' % (feature, ticker, filename)
                             value = "N/A"
 
-                    value_dict[each_data] = value
+                    value_dict[feature] = value
 
                     if ',' in str(value):
                         value = value.replace(',', '')
@@ -108,7 +103,7 @@ def Key_Stats():
                     elif "K" in value:
                         value = float(value.replace("K", '')) * 1000.
 
-                        value_dict[each_data] = value
+                        value_dict[feature] = value
 
                 one_year_later = int(unix_time + 31536000)
                 stock_price, sp500_value, stock_1y_value, sp500_1y_value = None, None, None, None
